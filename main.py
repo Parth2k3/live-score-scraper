@@ -20,8 +20,8 @@ def monitor_results():
         print("\nCurrent results:")
         for i, result in enumerate(results):
             print(f"Script {i + 1} result: {result}")
-        time.sleep(10)  # Wait before printing results again
+        time.sleep(10)  
 
 monitor_thread = threading.Thread(target=monitor_results)
-monitor_thread.daemon = True  # Set as a daemon so it doesn't block program exit
+monitor_thread.daemon = True  
 monitor_thread.start()
