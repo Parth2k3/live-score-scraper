@@ -9,11 +9,9 @@ from selenium.webdriver.chrome.options import Options
 chrome_options = Options()
 chrome_options.add_argument("--no-sandbox") 
 chrome_options.add_argument("--disable-dev-shm-usage")
-# Path to the ChromeDriver
 service = Service('C:/Users/sony/Downloads/chromedriver.exe') 
 driver = webdriver.Chrome(service=service,options=chrome_options)
 
-# Open the live score page
 driver.get("https://crex.live/scoreboard/RRE/1P0/9th-Match/DF/DG/ajm-vs-sha-9th-match-emirates-d20-league-2024/info")  # Replace with the actual live score URL
 # driver.execute_script("""
 #     const ads = document.querySelectorAll('.GoogleActiveViewElement');
@@ -21,7 +19,6 @@ driver.get("https://crex.live/scoreboard/RRE/1P0/9th-Match/DF/DG/ajm-vs-sha-9th-
 # """)
 driver.execute_script("document.querySelector('ins.adsbygoogle').style.display = 'none';")
 
-# Define a function to fetch the live score
 def fetch_bench():
     
     bench=[]
@@ -40,7 +37,10 @@ def fetch_playingxi():
     for player in players:
         playing.append(player.text)
     return playing
-try:
+
+def get_playing11(results, i):
+  while True:
+    print('getting playing 11 .. ')
     playing_xi1=[]
     playing_xi2 = []
     btn = driver.find_elements(By.CSS_SELECTOR, "button.playingxi-button")[1]
@@ -69,9 +69,13 @@ try:
     driver.execute_script("arguments[0].scrollIntoView(true);", header)
     time.sleep(1)
     bench1 = fetch_bench()
-    if playing_xi1 and playing_xi2:
-        print("Playing XI:", {'team1':playing_xi1}, {'team2':playing_xi2}, {'bench1': bench1},{'bench2':bench2})
+    if playing_xi1 or playing_xi2 or bench1 or bench2:
+        results[i] =({
+            'team1':playing_xi1,
+            'team2':playing_xi2,
+            'bench1': bench1,
+            'bench2':bench2
+            })
     else:
-        print("Could not retrieve live score.")
-finally:
-    driver.quit()
+        results[i] = ("Could not retrieve live score.")
+    time.sleep(10)

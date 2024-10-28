@@ -1,11 +1,12 @@
 import requests
 from bs4 import BeautifulSoup
-
+import time
 BASE_URL = "https://crex.live"
 
 matches_data = [] #team1, score1, over1, team2, score2, over2, status, href
 
 def get_match_schedule():
+    print('getting match schedules ...')
     global matches
     url = f"{BASE_URL}/fixtures/match-list"
     response = requests.get(url)
@@ -37,10 +38,10 @@ def get_match_schedule():
             reason = result.find('span', class_='reason').text if result.find('span', class_='reason') else ''
             result = result.text
         date=''
-        time=''
+        mtime=''
         if match.find('div', class_='not-started'):
             date = match.find('div', class_='not-started').find('p',class_='time').text
-            time = match.find('div', class_='not-started').find('div',class_='start-text').text
+            mtime = match.find('div', class_='not-started').find('div',class_='start-text').text
         
         matches_data.append({
             'href':href,
@@ -54,10 +55,16 @@ def get_match_schedule():
             'verdict': verdict,
             'reason':reason,
             'date':date,
-            'time':time
+            'mtime':mtime
         })
-        print('')
+    return matches_data
 
-get_match_schedule()
-for row in matches_data:
-    print(row)
+
+# results = [None]
+def get_mschedule(results, i):
+    # print('here')
+    results[i] = get_match_schedule()
+    # print('result = ')
+    # print(results[0])
+
+# get_schedule(results, 0)

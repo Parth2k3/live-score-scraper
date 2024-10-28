@@ -10,15 +10,14 @@ chrome_options = Options()
 chrome_options.add_argument("--headless") 
 chrome_options.add_argument("--no-sandbox") 
 chrome_options.add_argument("--disable-dev-shm-usage")
-# Path to the ChromeDriver
 service = Service('C:/Users/sony/Downloads/chromedriver.exe') 
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
-# Open the live score page
 driver.get("https://crex.live/scoreboard/RRE/1P0/9th-Match/DF/DG/ajm-vs-sha-9th-match-emirates-d20-league-2024/scorecard")  # Replace with the actual live score URL
 
-# Define a function to fetch the live score
-def fetch_scorecard():
+def fetch_scorecard(results, i):
+  while True:
+    print('scorecard fetching ...')
     # try:
     batting_table = driver.find_elements(By.CSS_SELECTOR, "table.bowler-table")[0].find_element(By.CSS_SELECTOR, 'tbody').find_elements(By.CSS_SELECTOR, 'tr')
     batting_data = []
@@ -93,29 +92,30 @@ def fetch_scorecard():
             'score2':score2
         })
 
-    return {
+    results[i] = {
         'batting_table': batting_data,
         'bowling_table': bowling_data,
         'fow_data': fow_data,
         'yet_to_bat': yet_to_bat,
         'partnerships':partnerships
     }
+    time.sleep(10)
     # except Exception as e:
     #     print("Error fetching score:", e)
     #     return None
-
+    
 # Fetch live score at intervals
-try:
-    while True:
-        # Print the live score without reloading the page
-        live_score = fetch_scorecard()
-        if live_score:
-            print("Scorecard:", live_score)
-        else:
-            print("Could not retrieve live score.")
+# try:
+#     while True:
+#         # Print the live score without reloading the page
+#         live_score = fetch_scorecard()
+#         if live_score:
+#             print("Scorecard:", live_score)
+#         else:
+#             print("Could not retrieve live score.")
 
-        # Wait for 10 seconds before fetching again (adjust as needed)
-        time.sleep(10)
+#         # Wait for 10 seconds before fetching again (adjust as needed)
+#         time.sleep(10)
 
-finally:
-    driver.quit()
+# finally:
+#     driver.quit()

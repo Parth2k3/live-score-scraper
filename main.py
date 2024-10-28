@@ -1,88 +1,27 @@
-from flask import Flask, render_template, jsonify
-import requests
-from bs4 import BeautifulSoup
-import schedule
-import time
-from datetime import datetime, timedelta
 import threading
+from match_info import get_schedule
+from live import fetch_score
+from schedules import get_mschedule
+from scorecard import fetch_scorecard
+from playingxi import get_playing11
 
-app = Flask(__name__)
-BASE_URL = "https://crex.live"
+scripts = [get_schedule, fetch_score, get_mschedule, fetch_scorecard, get_playing11]
+threads = []
+results = [None] * len(scripts)
 
-matches = []
+import time
+for i, script in enumerate(scripts):
+    thread = threading.Thread(target=script, args=(results, i))
+    threads.append(thread)
+    thread.start()
 
-def get_match_schedule():
-    global matches
-    url = f"{BASE_URL}/fixtures/match-list"
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    
-    match_list = soup.find_all("div", class_="match-item")
-    matches = []
-    for match in match_list:
-        match_link = match.find("a", href=True)
-        match_url = BASE_URL + match_link['href']
-        match_time_str = match.find("div", class_="match-time").text.strip()
-        match_time = datetime.strptime(match_time_str, "%Y-%m-%d %H:%M")
-        matches.append({
-            'url': match_url,
-            'time': match_time,
-        })
-    return matches
-
-def scrape_match_details(match_url):
-    response = requests.get(match_url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    
-    match_info = soup.find("div", class_="match-info").text.strip()
-    squads = soup.find("div", class_="squads").text.strip()
-    live_data = soup.find("div", class_="live").text.strip()
-    scorecard = soup.find("div", class_="scorecard").text.strip()
-    
-    match_details = {
-        'match_info': match_info,
-        'squads': squads,
-        'live_data': live_data,
-        'scorecard': scorecard,
-    }
-    return match_details
-
-def monitor_matches():
-    matches = get_match_schedule()
-    for match in matches:
-        match_time = match['time']
-        if datetime.now() < match_time:
-            delta = (match_time - datetime.now()).total_seconds()
-            threading.Timer(delta, scrape_match_details, [match['url']]).start()
-        else:
-            scrape_match_details(match['url'])
-
-def job():
-    print("Checking for updates...")
-    monitor_matches()
-
-def run_scheduler():
+def monitor_results():
     while True:
-        schedule.run_pending()
-        time.sleep(1)
+        print("\nCurrent results:")
+        for i, result in enumerate(results):
+            print(f"Script {i + 1} result: {result}")
+        time.sleep(10)  # Wait before printing results again
 
-schedule.every().minute.do(job)
-
-@app.route('/')
-def index():
-    return render_template('index.html', matches=matches)
-
-@app.route('/match/<path:match_url>')
-def match_details(match_url):
-    match_url = BASE_URL + '/' + match_url
-    details = scrape_match_details(match_url)
-    return jsonify(details)
-
-if __name__ == "__main__":
-    # Start the scheduler in a separate thread
-    scheduler_thread = threading.Thread(target=run_scheduler)
-    scheduler_thread.daemon = True
-    scheduler_thread.start()
-    
-    # Run the Flask app
-    app.run(debug=True)
+monitor_thread = threading.Thread(target=monitor_results)
+monitor_thread.daemon = True  # Set as a daemon so it doesn't block program exit
+monitor_thread.start()

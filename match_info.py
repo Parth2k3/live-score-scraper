@@ -6,6 +6,7 @@ BASE_URL = "https://crex.live"
 match_info = []
 
 def get_match_schedule(url):
+    print('getting match schedules ... ')
     global matches
     get_url = f"{BASE_URL}/{url}"
     response = requests.get(get_url)
@@ -17,7 +18,8 @@ def get_match_schedule(url):
     league = left_sections[0].find('a').find('img').get('alt')
     match_number = left_sections[0].find('a').find('div',class_='s-format').text
     venue_detail_section = left_container.find('div', class_='venue-detail')
-    venue = venue_detail_section.find('div', class_='match-venue').find('div').text
+    # print(venue_detail_section.find_all('div'))
+    # venue = venue_detail_section.find('div', class_='match-venue').find('div').text
     date = venue_detail_section.find('div', class_='match-date').find('div').text
     team1 = left_container.find_all('div',class_='form-team-name')[0].text
     team2 = left_container.find_all('div',class_='form-team-name')[1].text
@@ -71,7 +73,7 @@ def get_match_schedule(url):
     match_info.append({
         'league' : league,
         'match_number' : match_number,
-        'venue' : venue,
+        # 'venue' : venue,
         'date' : date,
         'team1' : team1,
         'team2' : team2,
@@ -93,6 +95,13 @@ def get_match_schedule(url):
         'recent_matches' : recent_matches
     })
 
-    print(match_info)
+    return (match_info)
+import time
+# results = []
+def get_schedule(results, i):
+  while True:  
+    results[i] = get_match_schedule('scoreboard/RNU/1OX/19th-Match/OT/QH/edk-vs-vls-19th-match-european-cricket-series-malta-2024/info')
+    print(results[i])
+    time.sleep(10)
 
-get_match_schedule('scoreboard/RNU/1OX/19th-Match/OT/QH/edk-vs-vls-19th-match-european-cricket-series-malta-2024/info')
+# get_schedule(results, 2)
